@@ -1,0 +1,71 @@
+---
+title: "Atmospheric concentration studies of co2"
+subtitle: "Time series-Coursework 1"
+author:
+- name: Haiqing Song
+date: "March 2024"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Co2 short-term forecasts and cyclical changes
+
+The project analysed time series of CO2 data, predicted future trends using Meta's Prophet forecasting tool, and explored cyclical patterns in CO2 concentrations over time, focusing on seasonal, daily and weekly variations.
+Firstly, `install.packages("remotes)`
+`remotes::install_github('facebook/prophet@*release',subdir='R')`
+
+co2 is a data frame containing the atmospheric concentration of carbon dioxide and is a time series of 468 observations; observations are made monthly from 1959 to 1997.
+
+
+
+```{r}
+co2.df = data.frame(
+  ds=zoo::as.yearmon(time(co2)), 
+  y=co2)
+m = prophet::prophet(co2.df,weekly.seasonality = TRUE,daily.seasonality = TRUE)
+f = prophet::make_future_dataframe(m, periods=8, freq="quarter")
+p = predict(m, f)
+plot(m,p)
+```
+
+
+
+```{r}
+prophet::prophet_plot_components(m,p)
+```
+In the graph, it can be observed that during the weekly cycle, Co2 emissions were significant on Sunday and Thursday, and the lowest on Tuesday
+In the annual  pattern, co2 concentration show a clear cyclical fluctuation from the beginning of March to the end of November. In particular, it increased significantly in December, reaching the highest point of the year. Comparatively, the concentration is lowest in February
+During the daily concentration, co2 are higher at night than during the day
+
+```{r}
+prophet::dyplot.prophet(m,p)
+```
+The dyplot provides a detailed view of each data point.
+
+
+## Long-term forecasts and uncertainty intervals
+
+```{r}
+future2 = prophet::make_future_dataframe(m, periods=30, freq="quarter")
+predict2= predict(m, future2)
+plot(m,predict2)
+```
+
+### Visualisation of uncertainty
+
+```{r}
+m1= prophet::prophet(co2.df,weekly.seasonality = TRUE,daily.seasonality = TRUE,interval.width = 0.95)
+future3 = prophet::make_future_dataframe(m1, periods=30, freq="quarter")
+predict3= predict(m1, future2)
+plot(m1,predict3)
+
+```
+By increasing the confidence interval, we can observe that the uncertainty in the future prediction of CO2 concentration becomes larger, suggesting that there is a large range of potential fluctuations in co2 concentration in the long-term prediction.
+
